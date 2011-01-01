@@ -1,0 +1,13 @@
+An arduino based datalogger intended for skiing but will probaly work for other
+uses.
+
+Requirements:
+  * Arduino 0019 or greater
+
+Limitations:
+  * Just started... barley works
+
+Install:
+  To install copy the sketches into your arduino 'sketchbook' directory.  There
+  are multiple sketches for he diffrent processors on the project.
+
