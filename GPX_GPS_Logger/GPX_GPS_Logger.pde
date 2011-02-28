@@ -13,18 +13,11 @@
 #define   ENABLED_LED    4
 #define   DONE_LED       5
 
-#define   COLLECT_SW     7
+#define   COLLECT_SW     6
+#define   NEWSEG_SW      7
 
 #define   WRDELAY        10
 
-
-
-int LoadAvailMem();
-void error_P(const char* str);
-void openElement();
-void closeElement();
-void setup();
-void loop();
 
 Consumer mySensors(2);
 GPX myGPX;
@@ -95,6 +88,22 @@ void closeElement(){
   if (file.writeError || !file.sync()) error ("print or sync");
 }
 
+void newFile(){
+   // create a new file
+  char name[] = "PRIN400.TXT";
+  for (uint8_t i = 0; i < 100; i++) {
+    name[5] = i/10 + '0';
+    name[6] = i%10 + '0';
+    if (file.open(name, O_CREAT | O_EXCL | O_WRITE)) break;
+  }
+  if (!file.isOpen()) error ("create");
+  PgmPrint("Printing to: ");
+  Serial.println(name);
+  
+  // clear write error
+  file.writeError = false; 
+}
+
 void setup() {
   // Setup serial port
   Serial.begin(9600);
@@ -118,7 +127,7 @@ void setup() {
   if (!Fat16::init(&card)) error("Fat16::init");
   
   // create a new file
-  char name[] = "PRIN300.TXT";
+  /*char name[] = "PRIN400.TXT";
   for (uint8_t i = 0; i < 100; i++) {
     name[5] = i/10 + '0';
     name[6] = i%10 + '0';
@@ -130,13 +139,15 @@ void setup() {
   
   // clear write error
   file.writeError = false;
-  
+  */
+  //newFile();
 }
 
 void loop(){
   
   //decide if we need to open or close the GPX element
   if ((state == 0 )&&(digitalRead(COLLECT_SW)==LOW)){
+    newFile();
     openElement();
     state=1;
     digitalWrite(ENABLED_LED, HIGH);
@@ -145,8 +156,19 @@ void loop(){
   if ((state == 1 )&&(digitalRead(COLLECT_SW)==HIGH)){
     closeElement();
     state=0;
+    file.close();
     digitalWrite(ENABLED_LED, LOW);
     digitalWrite(DONE_LED, HIGH);
+  }
+  if ((state == 1 )&&(digitalRead(NEWSEG_SW)==HIGH)){
+    Serial.print(myGPX.getTrakSegClose());
+    file.print(myGPX.getTrakSegClose());
+    state=3;
+  }
+  if ((state == 3 )&&(digitalRead(NEWSEG_SW)==LOW)){
+    Serial.print(myGPX.getTrakSegOpen());
+    file.print(myGPX.getTrakSegOpen());
+    state=1;
   }
   
   digitalWrite(SDWRITE_LED, LOW);
@@ -156,6 +178,7 @@ void loop(){
       Serial.println(LoadAvailMem());
       long *lat,*lon;
       unsigned long *tmp;
+      char* stmp;
     
       // Lat/Lon
       lat = (long*)malloc(sizeof(long));
@@ -164,10 +187,18 @@ void loop(){
       *lat = (*lat<<16)|mySensors.getValue(0x2);
       *lon = mySensors.getValue(0x3);
       *lon = (*lon<<16)|mySensors.getValue(0x4);
-      Serial.print(myGPX.getPtOpen(GPX_TRKPT,*lon,*lat));
-      file.print(myGPX.getPtOpen(GPX_TRKPT,*lon,*lat));
+      Serial.println(*lat);
+      Serial.println(*lon);
+      stmp=(char*)malloc(sizeof(char)*40);
+      if (myGPX.getPtOpen(stmp,lon,lat)){
+       file.print(stmp);
+       Serial.print(stmp); 
+      }
+      //Serial.print(myGPX.getPtOpen(GPX_TRKPT,*lon,*lat));
+      //file.print(myGPX.getPtOpen(GPX_TRKPT,*lon,*lat));
       //if (file.writeError || !file.sync()) error ("print or sync");
       //delay(WRDELAY);
+      free(stmp);
       free(lat);
       free(lon);
      
