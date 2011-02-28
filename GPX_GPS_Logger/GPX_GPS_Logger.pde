@@ -1,10 +1,7 @@
 #include <Consumer.h>
-
 #include <Wire.h>
-
 #include <Fat16.h>
 #include <Fat16util.h> 
-
 #include <GPX.h>
 #include <avr/pgmspace.h>
 
@@ -17,7 +14,6 @@
 #define   NEWSEG_SW      7
 
 #define   WRDELAY        10
-
 
 Consumer mySensors(2);
 GPX myGPX;
@@ -90,7 +86,7 @@ void closeElement(){
 
 void newFile(){
    // create a new file
-  char name[] = "PRIN400.TXT";
+  char name[] = "PRIN400.GPX";
   for (uint8_t i = 0; i < 100; i++) {
     name[5] = i/10 + '0';
     name[6] = i%10 + '0';
@@ -125,26 +121,9 @@ void setup() {
   // http://code.google.com/p/fat16lib/
   if (!card.init()) error("card.init");
   if (!Fat16::init(&card)) error("Fat16::init");
-  
-  // create a new file
-  /*char name[] = "PRIN400.TXT";
-  for (uint8_t i = 0; i < 100; i++) {
-    name[5] = i/10 + '0';
-    name[6] = i%10 + '0';
-    if (file.open(name, O_CREAT | O_EXCL | O_WRITE)) break;
-  }
-  if (!file.isOpen()) error ("create");
-  PgmPrint("Printing to: ");
-  Serial.println(name);
-  
-  // clear write error
-  file.writeError = false;
-  */
-  //newFile();
 }
 
 void loop(){
-  
   //decide if we need to open or close the GPX element
   if ((state == 0 )&&(digitalRead(COLLECT_SW)==LOW)){
     newFile();
@@ -194,10 +173,6 @@ void loop(){
        file.print(stmp);
        Serial.print(stmp); 
       }
-      //Serial.print(myGPX.getPtOpen(GPX_TRKPT,*lon,*lat));
-      //file.print(myGPX.getPtOpen(GPX_TRKPT,*lon,*lat));
-      //if (file.writeError || !file.sync()) error ("print or sync");
-      //delay(WRDELAY);
       free(stmp);
       free(lat);
       free(lon);
