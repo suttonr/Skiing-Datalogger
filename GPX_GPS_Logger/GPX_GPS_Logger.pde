@@ -227,12 +227,12 @@ void loop(){
         c = byte(*tmp%100);
       }
      
-      char* st=(char*)malloc(sizeof(char)*42);
+      stmp=(char*)malloc(sizeof(char)*42);
       //buildISODateTime(st,M,D,Y,h,m,s,c);
-      sprintf_P(st,PSTR("<time>20%2.i-%0.2i-%0.2iT%0.2i:%0.2i:%0.2i.%0.2i+00:00</time>"),Y,M,D,h,m,s,c);
-      Serial.println(st);
-      file.print(st);
-      free(st);
+      sprintf_P(stmp,PSTR("<time>20%2.i-%0.2i-%0.2iT%0.2i:%0.2i:%0.2i.%0.2i+00:00</time>"),Y,M,D,h,m,s,c);
+      Serial.println(stmp);
+      file.print(stmp);
+      free(stmp);
 
       //Speed
       //tmp = (unsigned long*)malloc(sizeof(unsigned long));
